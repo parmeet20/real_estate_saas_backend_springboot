@@ -7,7 +7,7 @@ import com.estate.est.entities.User;
 import java.util.List;
 
 public interface PropertyService {
-    List<Property> getAllProperties(int pageNumber, int pageSize, String field);
+    List<Property> getAllProperties(int pageNumber, int pageSize, List<String> field);
     CreatePropertyDto addProperty(Long userId, CreatePropertyDto property, String jwt)throws Exception;
     Property getPropertyById(Long propertyId)throws Exception;
     Property updateProperty(Long propertyId,CreatePropertyDto property,String jwt)throws Exception;

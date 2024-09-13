@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -40,6 +41,7 @@ public class Property {
     private Integer bedroom;
     private Integer busDistance;
     private Integer schoolDistance;
+    private Date createdAt = new Date(new Date().getTime());
     @ManyToMany
     private List<User> usersBookmarks = new ArrayList<>();
     @ManyToMany

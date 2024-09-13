@@ -24,7 +24,7 @@ public class PropertyController {
     public ResponseEntity<List<Property>> getAllPropertiesHandler(
             @RequestParam(value = "pageNumber", defaultValue = "0") int pageNumber,
             @RequestParam(value = "pageSize", defaultValue = "5") int pageSize,
-            @RequestParam(value = "query", defaultValue = "id", required = false) String query) {
+            @RequestParam(value = "query", defaultValue = "id", required = false) List<String> query) {
 
         List<Property> properties = propertyService.getAllProperties(pageNumber, pageSize, query);
         return new ResponseEntity<>(properties, HttpStatus.OK);

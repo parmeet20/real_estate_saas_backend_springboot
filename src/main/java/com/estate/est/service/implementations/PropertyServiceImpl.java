@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,12 +31,21 @@ public class PropertyServiceImpl implements PropertyService {
     private JwtProvider jwtProvider;
 
     @Override
-    public List<Property> getAllProperties(int pageNumber, int pageSize, String field) {
-        Pageable p = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, field));
-        Page<Property> pageProperty = propertyRepository.findAll(p);
-        List<Property> propertyList= pageProperty.getContent();
-        return propertyList;
+    public List<Property> getAllProperties(int pageNumber, int pageSize, List<String> fields) {
+        // Create a Sort object from the list of fields
+        Sort sortOrder = Sort.unsorted();
+        for (String field : fields) {
+            sortOrder = sortOrder.and(Sort.by(Sort.Order.asc(field)));
+        }
+
+        // Create a Pageable object with the Sort object
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sortOrder);
+
+        // Fetch the properties using the repository with pagination and sorting
+        Page<Property> pageProperty = propertyRepository.findAll(pageable);
+        return pageProperty.getContent();
     }
+
 
     @Override
     public CreatePropertyDto addProperty(Long userId, CreatePropertyDto propertyDto, String jwt) throws Exception {
@@ -49,6 +59,7 @@ public class PropertyServiceImpl implements PropertyService {
         }
         User owner = userOptional.get();
         Property newProperty = new Property();
+        newProperty.setCreatedAt(new Date(new Date().getTime()));
         newProperty.setOwner(owner);
         newProperty.setTitle(propertyDto.getTitle());
         newProperty.setDescription(propertyDto.getDescription());
