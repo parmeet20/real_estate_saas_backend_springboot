@@ -25,4 +25,8 @@ public class GlobalExceptionsHandler {
     public ResponseEntity<ErrorDetail>propertiesExc(PropertyException ex){
         return new ResponseEntity<>(new ErrorDetail(ex.getMessage(),false),HttpStatus.NOT_FOUND);
     }
+    @ExceptionHandler(MailExceptions.class)
+    public ResponseEntity<ErrorDetail>mailExceptions(MailExceptions ex){
+        return new ResponseEntity<>(new ErrorDetail(ex.getMessage(),false),HttpStatus.NOT_FOUND);
+    }
 }

@@ -3,6 +3,7 @@ package com.estate.est.controllers;
 import com.estate.est.dto.ApiResponse;
 import com.estate.est.dto.CreatePropertyDto;
 import com.estate.est.entities.Property;
+import com.estate.est.service.EmailService;
 import com.estate.est.service.implementations.PropertyServiceImpl;
 import com.estate.est.service.implementations.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,8 @@ public class PropertyController {
     private PropertyServiceImpl propertyService;
     @Autowired
     private UserServiceImpl userService;
-
+    @Autowired
+    private EmailService emailService;
     @GetMapping("/all")
     public ResponseEntity<List<Property>> getAllPropertiesHandler(
             @RequestParam(value = "pageNumber", defaultValue = "0") int pageNumber,

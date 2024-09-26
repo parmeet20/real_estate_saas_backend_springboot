@@ -2,12 +2,15 @@ package com.estate.est.service.implementations;
 
 import com.estate.est.config.JwtProvider;
 import com.estate.est.dto.GetUserDto;
+import com.estate.est.dto.NotificationDto;
+import com.estate.est.entities.Notification;
 import com.estate.est.entities.Property;
 import com.estate.est.entities.User;
 import com.estate.est.exceptions.PropertyException;
 import com.estate.est.exceptions.UserException;
 import com.estate.est.repositories.PropertyRepository;
 import com.estate.est.repositories.UserRepository;
+import com.estate.est.service.EmailService;
 import com.estate.est.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +29,10 @@ public class UserServiceImpl implements UserService {
     private JwtProvider jwtProvider;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private NotificationServiceImpl notificationService;
+    @Autowired
+    private EmailService emailService;
     @Override
     public GetUserDto getUserById(Long userId) throws Exception {
         Optional<User> userExists = userRepository.findById(userId);
@@ -61,35 +68,52 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String bookProperty(String jwt,Long userId, Long propertyId) throws Exception {
-        Optional<Property> propertyExists = propertyRepository.findById(propertyId);
-        Optional<User> userExists = userRepository.findById(userId);
-        if (propertyExists.isEmpty()){
-            throw new PropertyException("property with id "+ propertyId+" not found");
+    public String bookProperty(String jwt, Long userId, Long propertyId) throws Exception {
+        Optional<Property> propertyOptional = propertyRepository.findById(propertyId);
+        Optional<User> userOptional = userRepository.findById(userId);
+
+        if (propertyOptional.isEmpty()) {
+            throw new PropertyException("Property with id " + propertyId + " not found");
         }
-        if (userExists.isEmpty()){
-            throw new UserException("user with id "+ userId+" not found");
+
+        if (userOptional.isEmpty()) {
+            throw new UserException("User with id " + userId + " not found");
         }
-        if (!Objects.equals(jwtProvider.getEmailFromToken(jwt), userExists.get().getEmail())){
-            throw new UserException("access denied of booking property");
+
+        User user = userOptional.get();
+        Property property = propertyOptional.get();
+
+        // Check JWT access
+        if (!Objects.equals(jwtProvider.getEmailFromToken(jwt), user.getEmail())) {
+            throw new UserException("Access denied for booking property");
         }
-        if (userExists.get().getBookings().contains(propertyExists.get())){
-            userExists.get().getBookmarks().remove(propertyExists.get());
-            propertyExists.get().getUsersBookmarks().remove(userExists.get());
-        }else {
-            userExists.get().getBookmarks().add(propertyExists.get());
-            propertyExists.get().getUsersBookmarks().add(userExists.get());
+        // Toggle booking state
+        if (user.getBookings().contains(property)) {
+            user.getBookings().remove(property);
+            property.getUsersBookmarks().remove(user);
+        } else {
+            user.getBookings().add(property);
+            property.getBookedBy().add(user);
+            notificationService.createNotification(userId,new NotificationDto(property.getOwner(),"Property "+ property.getTitle()+" booked successfully"));
+            notificationService.createNotification(property.getOwner().getId(),new NotificationDto(property.getOwner(),"Your "+property.getTitle()+" is recently booked by "+user.getEmail()));
+                emailService.sendMail(
+                        property.getOwner().getEmail(),
+                        "New Booking from " + user.getEmail(),
+                        "Hello " + property.getOwner().getEmail() + ", your " + property.getTitle() + " has been booked by " + user.getEmail() + ".\nThanks for using EstateWave. Have a nice day."
+                );
         }
-        propertyExists.get().getBookedBy().add(userExists.get());
-        propertyRepository.save(propertyExists.get());
-        return "property with id "+propertyId+" is successfully booked by user with id "+userId;
+        userRepository.save(user);
+        propertyRepository.save(property);
+
+        return "Property with id " + propertyId + " is successfully booked by user with id " + userId;
     }
+
 
     @Override
     public GetUserDto updateUser(String jwt, GetUserDto getUserDto) throws Exception {
         User user = userRepository.getByEmail(jwtProvider.getEmailFromToken(jwt));
         if (user == null){
-            throw new UserException("user not found with user id "+user.getId());
+            throw new UserException("user not found with user id ");
         }
         user.setEmail(getUserDto.getEmail());
         user.setProfileImage(getUserDto.getProfileImage());

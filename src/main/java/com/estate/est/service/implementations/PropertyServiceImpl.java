@@ -2,12 +2,16 @@ package com.estate.est.service.implementations;
 
 import com.estate.est.config.JwtProvider;
 import com.estate.est.dto.CreatePropertyDto;
+import com.estate.est.dto.NotificationDto;
+import com.estate.est.entities.Notification;
 import com.estate.est.entities.Property;
 import com.estate.est.entities.User;
 import com.estate.est.exceptions.PropertyException;
 import com.estate.est.exceptions.UserException;
+import com.estate.est.repositories.NotificationRepository;
 import com.estate.est.repositories.PropertyRepository;
 import com.estate.est.repositories.UserRepository;
+import com.estate.est.service.EmailService;
 import com.estate.est.service.PropertyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -29,7 +33,10 @@ public class PropertyServiceImpl implements PropertyService {
     private UserRepository userRepository;
     @Autowired
     private JwtProvider jwtProvider;
-
+    @Autowired
+    private EmailService emailService;
+    @Autowired
+    private NotificationServiceImpl notificationService;
     @Override
     public List<Property> getAllProperties(int pageNumber, int pageSize, List<String> fields) {
         // Create a Sort object from the list of fields
@@ -79,8 +86,51 @@ public class PropertyServiceImpl implements PropertyService {
         newProperty.setBathroom(propertyDto.getBathroom());
         newProperty.setBedroom(propertyDto.getBedroom());
         propertyRepository.save(newProperty);
+        Notification notification = new Notification();
+        notification.setNotification("Your listing "+newProperty.getTitle()+" is created successfully");
+        notification.setUser(owner);
+        notificationService.createNotification(newProperty.getOwner().getId(),new NotificationDto(owner,"Your listing "+newProperty.getTitle()+" is created successfully"));
+        String subject = "Your New Property Listing is Live!";
+        String body = String.format(
+                "Dear %s,\n\n" +
+                        "We are delighted to inform you that your property listing has been successfully created and is now live on EstateWave!\n\n" +
+                        "Here are the details of your new listing:\n" +
+                        "- Title: %s\n" +
+                        "- Description: %s\n" +
+                        "- City: %s\n" +
+                        "- Address: %s\n" +
+                        "- **Price: %s\n" +
+                        "- Area: %s\n" +
+                        "- Bedrooms: %d\n" +
+                        "- Bathrooms: %d\n" +
+                        "- Property Type: %s\n" +
+                        "- Smoking Allowed: %s\n" +
+                        "- Pets Allowed: %s\n" +
+                        "- Distance to Bus: %s\n" +
+                        "- Distance to School: %s\n" +
+                        "- Utilities: %s\n" +
+                        "Thank you for choosing EstateWave to list your property. We appreciate your trust in our platform.\n\n" +
+                        "If you have any questions or need further assistance, please do not hesitate to reach out to us.\n\n" +
+                        "Best regards,\n" +
+                        "The EstateWave Team",
+                owner.getEmail(),
+                newProperty.getTitle(),
+                newProperty.getDescription(),
+                newProperty.getCity(),
+                newProperty.getAddress(),
+                newProperty.getPrice(),
+                newProperty.getArea(),
+                newProperty.getBedroom(),
+                newProperty.getBathroom(),
+                newProperty.getPropertyType(),
+                newProperty.getSmokingAllowed() ? "Yes" : "No",
+                newProperty.getPetAllowed() ? "Yes" : "No",
+                newProperty.getBusDistance(),
+                newProperty.getSchoolDistance(),
+                newProperty.getUtilities()
+        );
 
-        return new CreatePropertyDto(
+        emailService.sendMail(newProperty.getOwner().getEmail(), subject, body);        return new CreatePropertyDto(
                 newProperty.getId(),
                 newProperty.getPropertyType(),
                 newProperty.getTitle(),
@@ -161,6 +211,7 @@ public class PropertyServiceImpl implements PropertyService {
         if (!Objects.equals(deleteFromUser.get().getEmail(), email)){
             throw new PropertyException("you cannot delete other user's property listing");
         }
+        notificationService.createNotification(propertyExixts.get().getOwner().getId(),new NotificationDto(propertyExixts.get().getOwner(),"Property "+ propertyExixts.get().getTitle()+" deleted successfully"));
         deleteFromUser.get().getMyListings().remove(propertyExixts.get());
         propertyRepository.deleteById(propertyId);
         return "Property deleted successfully";

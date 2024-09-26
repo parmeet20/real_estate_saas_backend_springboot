@@ -1,5 +1,6 @@
 package com.estate.est.controllers;
 
+import com.estate.est.dto.ApiResponse;
 import com.estate.est.dto.NotificationDto;
 import com.estate.est.entities.Notification;
 import com.estate.est.service.implementations.NotificationServiceImpl;
@@ -19,12 +20,12 @@ public class NotificationController {
     public ResponseEntity<List<Notification>> getAllUserNotificationsHandler(@PathVariable("userId")Long userId)throws Exception{
         return new ResponseEntity<>(notificationService.getAllUserNotifications(userId), HttpStatus.OK);
     }
-    @PostMapping("/create/{userId}")
-    public ResponseEntity<NotificationDto> createNotificationHandler(@PathVariable("userId")Long userId, @RequestBody NotificationDto notification)throws Exception{
-        return new ResponseEntity<>(notificationService.createNotification(userId,notification),HttpStatus.CREATED);
-    }
     @DeleteMapping("/delete/{notificationId}/{userId}")
-    public ResponseEntity<String> deleteNotificationHandler(@PathVariable("notificationId")Long notificationId,@PathVariable("userId")Long userId)throws Exception{
-        return new ResponseEntity<>(notificationService.deleteNotitcation(userId, notificationId),HttpStatus.OK);
+    public ResponseEntity<String> deleteNotificationHandler(@RequestHeader("Authorization")String jwt, @PathVariable("notificationId")Long notificationId,@PathVariable("userId")Long userId)throws Exception{
+        return new ResponseEntity<>(notificationService.deleteNotitcation(jwt, userId, notificationId),HttpStatus.OK);
+    }
+    @DeleteMapping("/clear/{userId}")
+    public ResponseEntity<ApiResponse> clearAllUserNotificationsHandler(@PathVariable("userId")Long userId)throws Exception{
+        return new ResponseEntity<>(new ApiResponse(notificationService.clearAllNotifications(userId),"true"),HttpStatus.OK);
     }
 }

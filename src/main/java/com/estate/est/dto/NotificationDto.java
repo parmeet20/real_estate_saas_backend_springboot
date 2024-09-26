@@ -11,6 +11,4 @@ import lombok.NoArgsConstructor;
 public class NotificationDto {
     private User user;
     private String notification;
-    private Boolean isRead;
-
 }

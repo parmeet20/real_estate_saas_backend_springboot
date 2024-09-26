@@ -1,8 +1,10 @@
 package com.estate.est.service.implementations;
 
+import com.estate.est.config.JwtProvider;
 import com.estate.est.dto.NotificationDto;
 import com.estate.est.entities.Notification;
 import com.estate.est.entities.User;
+import com.estate.est.exceptions.UserException;
 import com.estate.est.repositories.NotificationRepository;
 import com.estate.est.repositories.UserRepository;
 import com.estate.est.service.NofificationService;
@@ -18,6 +20,8 @@ public class NotificationServiceImpl implements NofificationService {
     private NotificationRepository notificationRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private JwtProvider jwtProvider;
 
     @Override
     public NotificationDto createNotification(Long userId, NotificationDto notification) throws Exception {
@@ -26,21 +30,20 @@ public class NotificationServiceImpl implements NofificationService {
         if (userExists.isEmpty()){
             throw new Exception("user not found to send notification");
         }
-        if(notificationExists == null){
+        if(notificationExists != null){
             throw new Exception("notification already exists");
         }
         Notification newNotification = new Notification();
-        newNotification.setIsRead(false);
         newNotification.setUser(userExists.get());
         newNotification.setNotification(notification.getNotification());
         notificationRepository.save(newNotification);
         userExists.get().getNotifications().add(newNotification);
         userRepository.save(userExists.get());
-        return new NotificationDto(newNotification.getUser(),newNotification.getNotification(),newNotification.getIsRead());
+        return new NotificationDto(newNotification.getUser(),newNotification.getNotification());
     }
 
     @Override
-    public String deleteNotitcation(Long userId, Long notificationId) throws Exception {
+    public String deleteNotitcation(String jwt, Long userId, Long notificationId) throws Exception {
         Optional<Notification> notificationExists = notificationRepository.findById(notificationId);
         Optional<User> userExists = userRepository.findById(userId);
         if (userExists.isEmpty()){
@@ -52,6 +55,13 @@ public class NotificationServiceImpl implements NofificationService {
         userExists.get().getNotifications().remove(notificationExists.get());
         notificationRepository.deleteById(notificationId);
         return "notification with id " + notificationId + " deleted successfully";
+    }
+
+    @Override
+    public String clearAllNotifications(Long userId) {
+        Optional<User> userExists = userRepository.findById(userId);
+        notificationRepository.deleteAllByUserId(userId);
+        return "all notifications cleared successfully";
     }
 
     @Override

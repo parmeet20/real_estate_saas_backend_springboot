@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface NofificationService {
     NotificationDto createNotification(Long userId, NotificationDto notification)throws Exception;
-    String deleteNotitcation(Long userId, Long notificationId)throws Exception;
+    String deleteNotitcation(String jwt, Long userId, Long notificationId)throws Exception;
+    String clearAllNotifications(Long userId);
     List<Notification> getAllUserNotifications(Long userId)throws Exception;
 }
