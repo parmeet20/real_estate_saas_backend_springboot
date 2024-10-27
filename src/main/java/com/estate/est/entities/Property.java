@@ -24,6 +24,7 @@ public class Property {
     @ManyToOne
     @JoinColumn(name = "owner_id")
     private User owner;
+    @Column(length = 1000)
     private String description;
     private String city;
     private String address;

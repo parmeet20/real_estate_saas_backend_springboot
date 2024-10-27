@@ -95,7 +95,7 @@ public class UserServiceImpl implements UserService {
             user.getBookings().add(property);
             property.getBookedBy().add(user);
             notificationService.createNotification(userId,new NotificationDto(property.getOwner(),"Property "+ property.getTitle()+" booked successfully"));
-            notificationService.createNotification(property.getOwner().getId(),new NotificationDto(property.getOwner(),"Your "+property.getTitle()+" is recently booked by "+user.getEmail()));
+            notificationService.createNotification(property.getOwner().getId(),new NotificationDto(property.getOwner(),"Your "+property.getTitle()+" is recently booked by "+user.getEmail()+". You can contact with "+user.getEmail()+" via contact number at "+user.getContactNumber()));
                 emailService.sendMail(
                         property.getOwner().getEmail(),
                         "New Booking from " + user.getEmail(),
