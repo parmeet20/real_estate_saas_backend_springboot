@@ -14,4 +14,5 @@ public interface PropertyService {
     String deleteProperty(Long propertyId,String jwt)throws Exception;
     List<Property> getAllUserPropertiesById(Long userId)throws Exception;
     List<User> allBookings(Long propertyId)throws Exception;
+    List<Property> findByCountry(String country);
 }

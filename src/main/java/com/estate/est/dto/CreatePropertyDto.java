@@ -25,6 +25,8 @@ public class CreatePropertyDto {
     @NotNull
     private String city;
     @NotNull
+    private String country;
+    @NotNull
     private String address;
     @NotNull
     private String latitude;

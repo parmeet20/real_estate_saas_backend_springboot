@@ -41,6 +41,10 @@ public class PropertyController {
         List<Property> properties = propertyService.getAllProperties(pageNumber, pageSize, query);
         return new ResponseEntity<>(properties, HttpStatus.OK);
     }
+    @GetMapping("/search")
+    public List<Property> searchPropertiesByCountry(@RequestParam("country") String country) {
+        return propertyService.findByCountry(country);
+    }
     @GetMapping("/{propertyId}")
     public ResponseEntity<Property>getPropertyByIdHandler(@PathVariable("propertyId")Long propertyId)throws Exception{
         return new ResponseEntity<>(propertyService.getPropertyById(propertyId), HttpStatus.OK);

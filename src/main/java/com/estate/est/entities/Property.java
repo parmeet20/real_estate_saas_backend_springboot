@@ -27,6 +27,7 @@ public class Property {
     @Column(length = 1000)
     private String description;
     private String city;
+    private String country;
     private String address;
     private String latitude;
     private String longitude;

@@ -75,6 +75,7 @@ public class PropertyServiceImpl implements PropertyService {
         newProperty.setSchoolDistance(propertyDto.getSchoolDistance());
         newProperty.setCity(propertyDto.getCity());
         newProperty.setAddress(propertyDto.getAddress());
+        newProperty.setCountry(propertyDto.getCountry());
         newProperty.setSmokingAllowed(propertyDto.getSmokingAllowed());
         newProperty.setPetAllowed(propertyDto.getPetAllowed());
         newProperty.setPropertyType(propertyDto.getPropertyType());
@@ -130,13 +131,15 @@ public class PropertyServiceImpl implements PropertyService {
                 newProperty.getUtilities()
         );
 
-        emailService.sendMail(newProperty.getOwner().getEmail(), subject, body);        return new CreatePropertyDto(
+        emailService.sendMail(newProperty.getOwner().getEmail(), subject, body);
+        return new CreatePropertyDto(
                 newProperty.getId(),
                 newProperty.getPropertyType(),
                 newProperty.getTitle(),
                 newProperty.getOwner(),
                 newProperty.getDescription(),
                 newProperty.getCity(),
+                newProperty.getCountry(),
                 newProperty.getAddress(),
                 newProperty.getLatitude(),
                 newProperty.getLongitude(),
@@ -233,5 +236,10 @@ public class PropertyServiceImpl implements PropertyService {
             throw new PropertyException("property not found with id "+propertyId);
         }
         return propertyExists.get().getBookedBy();
+    }
+
+    @Override
+    public List<Property> findByCountry(String country) {
+        return propertyRepository.findByCountry(country);
     }
 }
